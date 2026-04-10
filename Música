@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicMatch - Descubre Tu Música</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .song-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .song-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .song-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .song-artist {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .song-genre {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .like-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .like-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .dislike-btn {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .dislike-btn:hover {
+            background: #e0e0e0;
+            transform: scale(1.05);
+        }
+
+        .stats {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .stats h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .preferences {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 10px;
+        }
+
+        .preferences h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .genre-tag {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            margin: 5px;
+            font-size: 0.85em;
+        }
+
+        .artist-tag {
+            display: inline-block;
+            background: #2196f3;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            margin: 5px;
+            font-size: 0.85em;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .song-card {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 1.2em;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 MusicMatch</h1>
+        <p class="subtitle">Descubre música personalizada para ti</p>
+
+        <div id="songContainer"></div>
+
+        <div class="stats">
+            <h3>📊 Tus Estadísticas</h3>
+            <div class="stat-item">
+                <span class="stat-label">Canciones evaluadas:</span>
+                <span class="stat-value" id="totalSongs">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Me gusta:</span>
+                <span class="stat-value" id="likedSongs">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Precisión de recomendación:</span>
+                <span class="stat-value" id="accuracy">0%</span>
+            </div>
+        </div>
+
+        <div class="preferences" id="preferences" style="display: none;">
+            <h4>🎯 Tus Géneros Favoritos:</h4>
+            <div id="genreList"></div>
+            <h4 style="margin-top: 15px;">⭐ Artistas que te gustan:</h4>
+            <div id="artistList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos expandida de canciones
+        const musicDatabase = [
+            // Pop
+            { title: "Blinding Lights", artist: "The Weeknd", genre: "Pop" },
+            { title: "Levitating", artist: "Dua Lipa", genre: "Pop" },
+            { title: "anti-hero", artist: "Taylor Swift", genre: "Pop" },
+            { title: "As It Was", artist: "Harry Styles", genre: "Pop" },
+            { title: "Heat Waves", artist: "Glass Animals", genre: "Pop" },
+            
+            // Rock
+            { title: "Mr. Brightside", artist: "The Killers", genre: "Rock" },
+            { title: "Everlong", artist: "Foo Fighters", genre: "Rock" },
+            { title: "Seven Nation Army", artist: "The White Stripes", genre: "Rock" },
+            { title: "Don't Look Back in Anger", artist: "Oasis", genre: "Rock" },
+            { title: "Radioactive", artist: "Imagine Dragons", genre: "Rock" },
+            
+            // Hip Hop
+            { title: "HUMBLE.", artist: "Kendrick Lamar", genre: "Hip Hop" },
+            { title: "Sicko Mode", artist: "Travis Scott", genre: "Hip Hop" },
+            { title: "God's Plan", artist: "Drake", genre: "Hip Hop" },
+            { title: "Lose Yourself", artist: "Eminem", genre: "Hip Hop" },
+            { title: "Bodak Yellow", artist: "Cardi B", genre: "Hip Hop" },
+            
+            // Electronic
+            { title: "Strobe", artist: "Deadmau5", genre: "Electronic" },
+            { title: "Animals", artist: "Martin Garrix", genre: "Electronic" },
+            { title: "Clarity", artist: "Zedd", genre: "Electronic" },
+            { title: "Wake Me Up", artist: "Avicii", genre: "Electronic" },
+            { title: "Titanium", artist: "David Guetta", genre: "Electronic" },
+            
+            // R&B
+            { title: "Earned It", artist: "The Weeknd", genre: "R&B" },
+            { title: "Best Part", artist: "Daniel Caesar", genre: "R&B" },
+            { title: "Location", artist: "Khalid", genre: "R&B" },
+            { title: "Redbone", artist: "Childish Gambino", genre: "R&B" },
+            { title: "Call Out My Name", artist: "The Weeknd", genre: "R&B" },
+            
+            // Reggaeton
+            { title: "Tití Me Preguntó", artist: "Bad Bunny", genre: "Reggaeton" },
+            { title: "Safaera", artist: "Bad Bunny", genre: "Reggaeton" },
+            { title: "Con Altura", artist: "Rosalía", genre: "Reggaeton" },
+            { title: "Dákiti", artist: "Bad Bunny", genre: "Reggaeton" },
+            { title: "Mi Gente", artist: "J Balvin", genre: "Reggaeton" },
+            
+            // Jazz
+            { title: "Take Five", artist: "Dave Brubeck", genre: "Jazz" },
+            { title: "So What", artist: "Miles Davis", genre: "Jazz" },
+            { title: "Autumn Leaves", artist: "Bill Evans", genre: "Jazz" },
+            { title: "My Favorite Things", artist: "John Coltrane", genre: "Jazz" },
+            { title: "Girl from Ipanema", artist: "Stan Getz", genre: "Jazz" },
+            
+            // Classical
+            { title: "Für Elise", artist: "Beethoven", genre: "Classical" },
+            { title: "Canon in D", artist: "Pachelbel", genre: "Classical" },
+            { title: "Moonlight Sonata", artist: "Beethoven", genre: "Classical" },
+            { title: "Clair de Lune", artist: "Debussy", genre: "Classical" },
+            { title: "The Four Seasons", artist: "Vivaldi", genre: "Classical" },
+            
+            // Country
+            { title: "Tennessee Whiskey", artist: "Chris Stapleton", genre: "Country" },
+            { title: "Wagon Wheel", artist: "Darius Rucker", genre: "Country" },
+            { title: "Meant to Be", artist: "Bebe Rexha", genre: "Country" },
+            { title: "Body Like a Back Road", artist: "Sam Hunt", genre: "Country" },
+            { title: "Die a Happy Man", artist: "Thomas Rhett", genre: "Country" },
+            
+            // Indie
+            { title: "Riptide", artist: "Vance Joy", genre: "Indie" },
+            { title: "Ho Hey", artist: "The Lumineers", genre: "Indie" },
+            { title: "Electric Feel", artist: "MGMT", genre: "Indie" },
+            { title: "Pumped Up Kicks", artist: "Foster the People", genre: "Indie" },
+            { title: "Take Me Out", artist: "Franz Ferdinand", genre: "Indie" },
+            
+            // Metal
+            { title: "Enter Sandman", artist: "Metallica", genre: "Metal" },
+            { title: "Master of Puppets", artist: "Metallica", genre: "Metal" },
+            { title: "Chop Suey!", artist: "System of a Down", genre: "Metal" },
+            { title: "Psychosocial", artist: "Slipknot", genre: "Metal" },
+            { title: "Raining Blood", artist: "Slayer", genre: "Metal" },
+            
+            // Latina
+            { title: "Bésame Mucho", artist: "Consuelo Velázquez", genre: "Latina" },
+            { title: "Bailando", artist: "Enrique Iglesias", genre: "Latina" },
+            { title: "La Bicicleta", artist: "Shakira", genre: "Latina" },
+            { title: "Vivir Mi Vida", artist: "Marc Anthony", genre: "Latina" },
+            { title: "Despacito", artist: "Luis Fonsi", genre: "Latina" }
+        ];
+
+        // Sistema de recomendación
+        class MusicRecommender {
+            constructor() {
+                this.likedSongs = [];
+                this.dislikedSongs = [];
+                this.currentIndex = 0;
+                this.genrePreferences = {};
+                this.artistPreferences = {};
+                this.shownSongs = new Set();
+            }
+
+            getCurrentSong() {
+                if (this.likedSongs.length < 3) {
+                    // Fase inicial: mostrar variedad
+                    return this.getRandomSong();
+                } else {
+                    // Fase de recomendación inteligente
+                    return this.getRecommendedSong();
+                }
+            }
+
+            getRandomSong() {
+                let attempts = 0;
+                let song;
+                do {
+                    const randomIndex = Math.floor(Math.random() * musicDatabase.length);
+                    song = musicDatabase[randomIndex];
+                    attempts++;
+                } while (this.shownSongs.has(song.title) && attempts < 50);
+                
+                this.shownSongs.add(song.title);
+                return song;
+            }
+
+            getRecommendedSong() {
+                // Calcular scores para cada canción no vista
+                const candidates = musicDatabase.filter(song => 
+                    !this.shownSongs.has(song.title)
+                );
+
+                if (candidates.length === 0) {
+                    this.shownSongs.clear();
+                    return this.getRandomSong();
+                }
+
+                const scoredSongs = candidates.map(song => ({
+                    ...song,
+                    score: this.calculateScore(song)
+                }));
+
+                // Ordenar por score y tomar top 3
+                scoredSongs.sort((a, b) => b.score - a.score);
+                
+                // Seleccionar aleatoriamente entre los top 3 para variedad
+                const topCandidates = scoredSongs.slice(0, 3);
+                const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+                
+                this.shownSongs.add(selected.title);
+                return selected;
+            }
+
+            calculateScore(song) {
+                let score = 0;
+                
+                // Score por género
+                const genreScore = this.genrePreferences[song.genre] || 0;
+                score += genreScore * 3;
+                
+                // Score por artista
+                const artistScore = this.artistPreferences[song.artist] || 0;
+                score += artistScore * 2;
+                
+                // Bonus por artistas similares en géneros favoritos
+                if (genreScore > 0) {
+                    score += 1;
+                }
+                
+                return score;
+            }
+
+            likeSong(song) {
+                this.likedSongs.push(song);
+                
+                // Actualizar preferencias de género
+                this.genrePreferences[song.genre] = 
+                    (this.genrePreferences[song.genre] || 0) + 1;
+                
+                // Actualizar preferencias de artista
+                this.artistPreferences[song.artist] = 
+                    (this.artistPreferences[song.artist] || 0) + 1;
+            }
+
+            dislikeSong(song) {
+                this.dislikedSongs.push(song);
+                
+                // Penalizar género y artista
+                this.genrePreferences[song.genre] = 
+                    (this.genrePreferences[song.genre] || 0) - 0.5;
+                
+                this.artistPreferences[song.artist] = 
+                    (this.artistPreferences[song.artist] || 0) - 0.5;
+            }
+
+            getTopGenres(limit = 5) {
+                return Object.entries(this.genrePreferences)
+                    .filter(([_, score]) => score > 0)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, limit)
+                    .map(([genre, _]) => genre);
+            }
+
+            getTopArtists(limit = 5) {
+                return Object.entries(this.artistPreferences)
+                    .filter(([_, score]) => score > 0)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, limit)
+                    .map(([artist, _]) => artist);
+            }
+
+            getStats() {
+                const total = this.likedSongs.length + this.dislikedSongs.length;
+                const accuracy = total > 0 
+                    ? Math.round((this.likedSongs.length / total) * 100) 
+                    : 0;
+                
+                return {
+                    total,
+                    liked: this.likedSongs.length,
+                    accuracy
+                };
+            }
+        }
+
+        // Inicializar sistema
+        const recommender = new MusicRecommender();
+        let currentSong = null;
+
+        // Funciones de UI
+        function displaySong(song) {
+            currentSong = song;
+            const container = document.getElementById('songContainer');
+            container.innerHTML = `
+                <div class="song-card">
+                    <div class="song-title">${song.title}</div>
+                    <div class="song-artist">${song.artist}</div>
+                    <span class="song-genre">${song.genre}</span>
+                    <div class="buttons">
+                        <button class="dislike-btn" onclick="handleDislike()">👎 No me gusta</button>
+                        <button class="like-btn" onclick="handleLike()">👍 Me gusta</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStats() {
+            const stats = recommender.getStats();
+            document.getElementById('totalSongs').textContent = stats.total;
+            document.getElementById('likedSongs').textContent = stats.liked;
+            document.getElementById('accuracy').textContent = stats.accuracy + '%';
+        }
+
+        function updatePreferences() {
+            const topGenres = recommender.getTopGenres();
+            const topArtists = recommender.getTopArtists();
+            
+            if (topGenres.length > 0 || topArtists.length > 0) {
+                document.getElementById('preferences').style.display = 'block';
+                
+                const genreList = document.getElementById('genreList');
+                genreList.innerHTML = topGenres.length > 0
+                    ? topGenres.map(g => `<span class="genre-tag">${g}</span>`).join('')
+                    : '<span style="color: #666;">Aún descubriendo...</span>';
+                
+                const artistList = document.getElementById('artistList');
+                artistList.innerHTML = topArtists.length > 0
+                    ? topArtists.map(a => `<span class="artist-tag">${a}</span>`).join('')
+                    : '<span style="color: #666;">Aún descubriendo...</span>';
+            }
+        }
+
+        function handleLike() {
+            recommender.likeSong(currentSong);
+            updateStats();
+            updatePreferences();
+            loadNextSong();
+        }
+
+        function handleDislike() {
+            recommender.dislikeSong(currentSong);
+            updateStats();
+            updatePreferences();
+            loadNextSong();
+        }
+
+        function loadNextSong() {
+            const nextSong = recommender.getCurrentSong();
+            displaySong(nextSong);
+        }
+
+        // Iniciar aplicación
+        loadNextSong();
+    </script>
+</body>
+</html>
